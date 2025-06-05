@@ -1,32 +1,28 @@
 import { Box, Container, Paper, Typography } from '@mui/material';
-import LoginForm from './LoginForm';
-import styles from './login.module.css';
+import RegisterForm from './RegisterForm';
+import styles from '../login/login.module.css';
 
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import Link from 'next/link';
 
-export default async function LoginPage() {
+export default async function RegisterPage() {
   const session = await getServerSession(authOptions);
   if (session) redirect('/tasks');
+
   return (
     <Box className={styles.root}>
       <Container maxWidth="sm">
         <Paper elevation={3} className={styles.paper}>
           <Typography variant="h2" gutterBottom className={styles.title}>
-            Log in
+            Register
           </Typography>
           <Typography variant="subtitle1" className={styles.subtitle}>
-            Enter your credentials to access your tasks.
+            Create your account to manage tasks.
           </Typography>
-          <LoginForm />
-          <Link href="/register">
-            Don't have an account? Register
-          </Link>
+          <RegisterForm />
         </Paper>
       </Container>
-
     </Box>
   );
 }

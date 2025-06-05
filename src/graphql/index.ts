@@ -1,1 +1,1 @@
-export { LOGIN_MUTATION } from "./mutations";
+export * from "./mutations";

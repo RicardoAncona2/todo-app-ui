@@ -1,49 +1,56 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { useMutation } from '@apollo/client';
+import { useForm } from 'react-hook-form';
+import { REGISTER_MUTATION } from '@/graphql/';
 import {
-  Button,
+  Box,
   TextField,
+  Button,
   Alert,
   CircularProgress,
-  Box,
 } from '@mui/material';
-import { useForm } from 'react-hook-form';
 import { useState } from 'react';
-import styles from './login.module.css';
+import { useRouter } from 'next/navigation';
+import styles from './register.module.css';
 
 type FormData = {
+  name: string;
   email: string;
   password: string;
+  confirmPassword: string;
 };
 
-export default function LoginForm() {
+export default function RegisterForm() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<FormData>();
+
+  const [registerUser, { loading }] = useMutation(REGISTER_MUTATION);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const onSubmit = async (data: FormData) => {
-    setLoading(true);
-    setError(null);
+    if (data.password !== data.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
 
-    const result = await signIn('credentials', {
-      redirect: false,
-      email: data.email,
-      password: data.password,
-    });
+    try {
+      await registerUser({
+        variables: {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        },
+      });
 
-    setLoading(false);
-
-    if (result?.ok) {
-      router.push('/tasks');
-    } else {
-      setError('Invalid email or password');
+      router.push('/login');
+    } catch (err: any) {
+      setError(err.message || 'Registration failed');
     }
   };
 
@@ -51,10 +58,17 @@ export default function LoginForm() {
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <TextField
+          label="Name"
+          fullWidth
+          margin="normal"
+          {...register('name', { required: 'Name is required' })}
+          error={!!errors.name}
+          helperText={errors.name?.message}
+        />
+        <TextField
           label="Email"
           type="email"
           fullWidth
-          variant="outlined"
           margin="normal"
           {...register('email', { required: 'Email is required' })}
           error={!!errors.email}
@@ -64,11 +78,19 @@ export default function LoginForm() {
           label="Password"
           type="password"
           fullWidth
-          variant="outlined"
           margin="normal"
           {...register('password', { required: 'Password is required' })}
           error={!!errors.password}
           helperText={errors.password?.message}
+        />
+        <TextField
+          label="Confirm Password"
+          type="password"
+          fullWidth
+          margin="normal"
+          {...register('confirmPassword', { required: 'Please confirm password' })}
+          error={!!errors.confirmPassword}
+          helperText={errors.confirmPassword?.message}
         />
         <Box mt={2} mb={2}>
           <Button
@@ -79,7 +101,7 @@ export default function LoginForm() {
             className={styles.submitButton}
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : 'Sign In'}
+            {loading ? <CircularProgress size={24} /> : 'Register'}
           </Button>
         </Box>
       </form>
