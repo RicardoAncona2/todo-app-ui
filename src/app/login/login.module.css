@@ -1,0 +1,60 @@
+/* components/Login/LoginPage.module.css */
+
+.root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f0ec;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.paper {
+  padding: 2rem;
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 0.93);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+  .paper {
+    padding: 3rem;
+  }
+}
+
+.title {
+  font-family: Georgia, serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #111;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .title {
+    font-size: 3rem;
+  }
+}
+
+.subtitle {
+  text-align: center;
+  color: #555;
+  margin-bottom: 2rem;
+  font-weight: 400;
+}
+
+.submitButton {
+  margin-top: 24px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 16px;
+  text-transform: none;
+}
+
+.error {
+  margin-top: 24px;
+}
