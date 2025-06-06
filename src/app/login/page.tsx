@@ -8,7 +8,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
 export default async function LoginPage() {
-  const session = await getServerSession(authOptions);
+    const safeAuthOptions = authOptions || { providers: [] };
+  const session = await getServerSession(safeAuthOptions);
   if (session?.accessToken) redirect('/tasks');
   return (
     <Box>

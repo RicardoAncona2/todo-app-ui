@@ -7,7 +7,7 @@ import { Task } from './TasksBoard';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
-  borderRadius:15,
+  borderRadius: 15,
   minHeight: 300,
 }));
 
@@ -34,17 +34,20 @@ const StatusColumn = ({
   }));
 
   return (
-    <Grid size={{xs:12, md:4}}>
-      <div ref={drop}>
-        <StyledPaper elevation={3}>
-          <Typography variant="h6" gutterBottom align="center">
-            {title}
-          </Typography>
-          {tasks.map((task) => (
-            <DraggableTask key={task.id} task={task} onDelete={onDelete} />
-          ))}
-        </StyledPaper>
-      </div>
+    <Grid size={{ xs: 12, md: 4 }}>
+      {drop(
+        <div>
+          <StyledPaper elevation={3}>
+            <Typography variant="h6" gutterBottom align="center">
+              {title}
+            </Typography>
+            {tasks.map((task) => (
+              <DraggableTask key={task.id} task={task} onDelete={onDelete} />
+            ))}
+          </StyledPaper>
+        </div>
+      )}
+
     </Grid>
   );
 };

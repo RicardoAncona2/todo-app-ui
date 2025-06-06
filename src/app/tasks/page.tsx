@@ -4,7 +4,8 @@ import { authOptions } from '@/lib';
 import TasksBoard from './TasksBoard';
 
 export default async function TasksPage() {
-  const session = await getServerSession(authOptions);
+  const safeAuthOptions = authOptions || { providers: [] };
+  const session = await getServerSession(safeAuthOptions);
   if (!session?.accessToken) redirect('/login');
 
   return <TasksBoard />;

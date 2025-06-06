@@ -8,7 +8,8 @@ import { authOptions } from '@/lib';
 import Link from 'next/link';
 
 export default async function RegisterPage() {
-  const session = await getServerSession(authOptions);
+  const safeAuthOptions = authOptions || { providers: [] };
+  const session = await getServerSession(safeAuthOptions);
   if (session) redirect('/tasks');
 
   return (
@@ -22,7 +23,7 @@ export default async function RegisterPage() {
             Create your account to manage tasks.
           </Typography>
           <RegisterForm />
-          <Link href="/register">
+          <Link href="/login">
             Login instead
           </Link>
         </Paper>
