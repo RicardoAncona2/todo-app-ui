@@ -1,94 +1,40 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import {
-  Button,
-  TextField,
-  Alert,
-  CircularProgress,
-  Box,
-} from '@mui/material';
-import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { Button, TextField, Box, Alert } from '@mui/material';
 import styles from './login.module.css';
+import { handleLogin } from './actions';
 
-type FormData = {
-  email: string;
-  password: string;
-};
-
-export default function LoginForm() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>();
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  const onSubmit = async (data: FormData) => {
-    setLoading(true);
-    setError(null);
-
-    const result = await signIn('credentials', {
-      redirect: false,
-      email: data.email,
-      password: data.password,
-    });
-
-    setLoading(false);
-
-    if (result?.ok) {
-      router.push('/tasks');
-    } else {
-      setError('Invalid email or password');
-    }
-  };
+export default function LoginForm({ searchParams }: { searchParams: { error?: string } }) {
+  const error = searchParams?.error||"err";
 
   return (
-    <>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <TextField
-          label="Email"
-          type="email"
-          fullWidth
-          variant="outlined"
-          margin="normal"
-          {...register('email', { required: 'Email is required' })}
-          error={!!errors.email}
-          helperText={errors.email?.message}
-        />
-        <TextField
-          label="Password"
-          type="password"
-          fullWidth
-          variant="outlined"
-          margin="normal"
-          {...register('password', { required: 'Password is required' })}
-          error={!!errors.password}
-          helperText={errors.password?.message}
-        />
-        <Box mt={2} mb={2}>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
-            className={styles.submitButton}
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : 'Sign In'}
-          </Button>
-        </Box>
-      </form>
-
+    <form action={handleLogin} className={styles.form}>
+      <TextField
+        name="email"
+        type="email"
+        label="Email"
+        variant="outlined"
+        margin="normal"
+        fullWidth
+        required
+      />
+      <TextField
+        name="password"
+        type="password"
+        label="Password"
+        variant="outlined"
+        margin="normal"
+        fullWidth
+        required
+      />
+      <Box mt={2} mb={2}>
+        <Button type="submit" variant="contained" color="primary" fullWidth>
+          Sign In
+        </Button>
+      </Box>
       {error && (
         <Alert severity="error" className={styles.error}>
           {error}
         </Alert>
       )}
-    </>
+    </form>
   );
 }
