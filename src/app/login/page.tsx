@@ -3,7 +3,7 @@ import React from 'react';
 import { Box, Container, Paper, Typography, } from '@mui/material';
 import LoginForm from './LoginForm';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 

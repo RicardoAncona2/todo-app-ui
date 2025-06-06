@@ -4,7 +4,7 @@ import { setContext } from '@apollo/client/link/context';
 import { getSession } from "next-auth/react";
 
 const httpLink = createHttpLink({
-  uri: 'http://localhost:3000/graphql', // change to your backend
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_API!,
 });
 
 const authLink = setContext(async (_, { headers }) => {
