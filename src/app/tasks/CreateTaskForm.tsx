@@ -51,7 +51,7 @@ export default function CreateTaskForm({ onSuccess }: Props) {
             description: data.description,
             status: data.status,
           },
-        },
+        }, refetchQueries: ['ReadMyTasks'], awaitRefetchQueries: true,
       });
 
       reset();
