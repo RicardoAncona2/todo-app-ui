@@ -1,6 +1,7 @@
-import CredentialsProvider from 'next-auth/providers/credentials';
 import NextAuth, { NextAuthOptions } from 'next-auth';
-// Module augmentation — ideally in a separate `next-auth.d.ts` file
+import CredentialsProvider from 'next-auth/providers/credentials';
+
+// --- Module augmentation ---
 declare module 'next-auth' {
   interface Session {
     accessToken: string;
@@ -14,7 +15,9 @@ declare module 'next-auth/jwt' {
     refreshToken: string;
   }
 }
-export const authOptions= {
+
+// --- Auth options ---
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -47,6 +50,7 @@ export const authOptions= {
             refreshToken: data.login.refreshToken,
           };
         }
+
         return null;
       },
     }),
@@ -71,13 +75,14 @@ export const authOptions= {
   pages: {
     signIn: '/login',
   },
-  secret: "O6YuXrTSf7Y4v7rc+uNGlRwVhRiVLXzGp30QFbI5VGU=",
-}
-export const authConfig: NextAuthOptions =authOptions;
+  secret: 'O6YuXrTSf7Y4v7rc+uNGlRwVhRiVLXzGp30QFbI5VGU=',
+};
 
-// Create the NextAuth handler with your config
-const handler = NextAuth(authConfig);
-export const { auth, signIn, signOut, handlers } = NextAuth(authConfig);
+// --- NextAuth handler ---
+const handler = NextAuth(authOptions);
 
-// **Important:** Export HTTP method handlers for Next.js App Router
+// For App Router — export handlers
 export { handler as GET, handler as POST };
+
+// Optional helpers if needed in other parts of the app
+export const { auth, signIn, signOut, handlers } = NextAuth(authOptions);

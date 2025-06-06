@@ -1,38 +1,80 @@
-import { Button, TextField, Box, Alert } from '@mui/material';
-import styles from './login.module.css';
-import { handleLogin } from './actions';
+'use client';
 
-export default function LoginForm({ searchParams }: { searchParams: { error?: string } }) {
-  const error = searchParams?.error||"err";
+import { useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
+import { Button, TextField, Box, Alert, CircularProgress } from '@mui/material';
+import styles from './login.module.css';
+import { signIn } from 'next-auth/react';
+
+type LoginFormData = {
+  email: string;
+  password: string;
+};
+
+export default function LoginForm() {
+  const {
+    register,
+    clearErrors,
+    setError,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>();
+
+  const router = useRouter();
+  const onSubmit = async (data: LoginFormData) => {
+    clearErrors();
+
+    const res = await signIn('credentials', {
+      redirect: false,
+      email: data.email,
+      password: data.password,
+    });
+
+    if (res?.error) {
+      setError('root', {
+        type: 'server',
+        message: res.status === 401 ? "invalid credentials" : 'Login failed',
+      });
+    } else if (res?.ok) {
+      router.push('/tasks');
+    }
+  };
+
 
   return (
-    <form action={handleLogin} className={styles.form}>
+    <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
       <TextField
-        name="email"
-        type="email"
         label="Email"
-        variant="outlined"
-        margin="normal"
+        type="email"
         fullWidth
-        required
+        margin="normal"
+        {...register('email', { required: 'Email is required' })}
+        error={!!errors.email}
+        helperText={errors.email?.message}
       />
       <TextField
-        name="password"
-        type="password"
         label="Password"
-        variant="outlined"
-        margin="normal"
+        type="password"
         fullWidth
-        required
+        margin="normal"
+        {...register('password', { required: 'Password is required' })}
+        error={!!errors.password}
+        helperText={errors.password?.message}
       />
       <Box mt={2} mb={2}>
-        <Button type="submit" variant="contained" color="primary" fullWidth>
-          Sign In
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          fullWidth
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? <CircularProgress size={24} /> : 'Sign In'}
         </Button>
       </Box>
-      {error && (
+      {(errors.root) && (
         <Alert severity="error" className={styles.error}>
-          {error}
+          {errors.root?.message}
         </Alert>
       )}
     </form>

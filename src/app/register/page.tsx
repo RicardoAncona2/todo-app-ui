@@ -5,6 +5,7 @@ import styles from '../login/login.module.css';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import Link from 'next/link';
 
 export default async function RegisterPage() {
   const session = await getServerSession(authOptions);
@@ -21,6 +22,9 @@ export default async function RegisterPage() {
             Create your account to manage tasks.
           </Typography>
           <RegisterForm />
+          <Link href="/register">
+            Login instead
+          </Link>
         </Paper>
       </Container>
     </Box>

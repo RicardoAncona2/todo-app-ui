@@ -5,7 +5,7 @@ import TasksPageClient from './TasksPages';
 
 export default async function TasksPage() {
   const session = await getServerSession(authOptions);
-  if (!session) redirect('/login');
+  if (!session?.accessToken) redirect('/login');
 
   return <TasksPageClient />;
 }
