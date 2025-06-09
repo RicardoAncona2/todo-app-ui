@@ -15,7 +15,7 @@ const DraggableTask = ({ task, onDelete }: { task: Task; onDelete: (id: string) 
     collect: (monitor) => ({ isDragging: monitor.isDragging() }),
   }));
 
-  return drag(
+  return drag(<div>
     <Box
       sx={{
         mb: 2,
@@ -40,7 +40,7 @@ const DraggableTask = ({ task, onDelete }: { task: Task; onDelete: (id: string) 
       </Typography>
       <Typography variant="body2">{task.description}</Typography>
     </Box>
-  );
+  </div>);
 
 };
 

@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Box, Container, Paper, Typography, } from '@mui/material';
 import LoginForm from './LoginForm';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib';
+import { authOptions } from '@/lib/authOptions';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
