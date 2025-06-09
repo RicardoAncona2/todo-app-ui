@@ -8,7 +8,23 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 3000
-RUN npm install -g dotenv-cli
+# Build the Next.js app
+RUN npm run build
 
-CMD ["dotenv", "--", "npm", "run", "dev"]
+# -------- Run Stage --------
+FROM node:20-alpine AS runner
+
+WORKDIR /app
+
+# Copy only necessary files from build stage
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+
+# Set environment variable for production
+ENV NODE_ENV=production
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
