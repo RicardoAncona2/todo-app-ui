@@ -22,7 +22,7 @@ export default async function RegisterPage() {
             Create your account to manage tasks.
           </Typography>
           <RegisterForm />
-          <Link href="/register">
+          <Link href="/login">
             Login instead
           </Link>
         </Paper>
