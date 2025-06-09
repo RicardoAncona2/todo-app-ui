@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { useQuery, useMutation, gql } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import {
   Box,
   Button,
@@ -15,11 +15,13 @@ import StatusColumn from './StatusColumn';
 import ConfirmDialog from './ConfirmDialog';
 import CreateTaskForm from './CreateTaskForm';
 
+export type Status = 'PENDING' | 'IN_PROGRESS' | 'DONE';
+
 export type Task = {
   id: string;
   title: string;
   description: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'DONE';
+  status: Status;
 };
 
 export default function TasksBoard() {
@@ -28,14 +30,15 @@ export default function TasksBoard() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
-  const { data, loading, error } = useQuery<{ myTasks: Task[] }>(READ_TASKS);
+  const { data, loading, error, refetch } = useQuery<{ myTasks: Task[] }>(READ_TASKS);
   const [updateTask] = useMutation(UPDATE_TASK_MUTATION);
   const [deleteTask] = useMutation(DELETE_TASK);
 
   const tasks = data?.myTasks ?? [];
 
+  // Modal handlers
   const handleOpen = () => {
-    setEditTask(null); // create mode
+    setEditTask(null);
     setOpen(true);
   };
 
@@ -49,49 +52,31 @@ export default function TasksBoard() {
     setEditTask(null);
   };
 
-  const updateTaskStatus = async (task: Task, newStatus: string) => {
-    const currentTask = tasks.find((t) => t.id === task.id);
-    if (!currentTask) return;
-
+  // Task status update handler (e.g. drag & drop)
+  const updateTaskStatus = async (task: Task, newStatus: Status) => {
     try {
       await updateTask({
         variables: {
-          id: currentTask.id,
+          id: task.id,
           input: {
-            title: currentTask.title,
-            description: currentTask.description,
+            title: task.title,
+            description: task.description,
             status: newStatus,
           },
         },
+        // Optimistic UI update for instant UI feedback
         optimisticResponse: {
-          updateTask: { ...currentTask, status: newStatus },
+          updateTask: {
+            __typename: 'Task',
+            id: task.id,
+            title: task.title,
+            description: task.description,
+            status: newStatus,
+          },
         },
-        update(cache, { data }) {
-          if (!data?.updateTask) return;
-          cache.modify({
-            fields: {
-              myTasks(existingTasksRefs = [], { readField }) {
-                return existingTasksRefs.map((taskRef: any) => {
-                  const id = readField('id', taskRef);
-                  if (id === task.id) {
-                    return cache.writeFragment({
-                      data: data.updateTask,
-                      fragment: gql`
-                      fragment UpdatedTask on Task {
-                        id
-                        title
-                        description
-                        status
-                      }
-                    `,
-                    });
-                  }
-                  return taskRef;
-                });
-              },
-            },
-          });
-        },
+        // Refetch to keep server and cache in sync after mutation finishes
+        refetchQueries: ['ReadMyTasks'],
+        awaitRefetchQueries: true,
       });
     } catch (error) {
       console.error('Failed to update task status', error);
@@ -99,6 +84,7 @@ export default function TasksBoard() {
   };
 
 
+  // Delete flow
   const handleDelete = (id: string) => {
     setTaskToDelete(id);
     setConfirmOpen(true);
@@ -106,7 +92,6 @@ export default function TasksBoard() {
 
   const confirmDelete = async () => {
     if (!taskToDelete) return;
-
     try {
       await deleteTask({
         variables: { id: taskToDelete },
@@ -133,10 +118,6 @@ export default function TasksBoard() {
   if (loading) return <Typography align="center">Loading...</Typography>;
   if (error) return <Typography align="center" color="error">Error loading tasks</Typography>;
 
-  const pending = tasks.filter((task) => task.status === 'PENDING');
-  const inProgress = tasks.filter((task) => task.status === 'IN_PROGRESS');
-  const done = tasks.filter((task) => task.status === 'DONE');
-
   return (
     <>
       <Box textAlign="center" mb={4}>
@@ -146,30 +127,17 @@ export default function TasksBoard() {
       </Box>
 
       <Grid container spacing={3}>
-        <StatusColumn
-          title="Pending"
-          status="PENDING"
-          tasks={pending}
-          onDrop={updateTaskStatus}
-          onDelete={handleDelete}
-          onEdit={handleEdit}
-        />
-        <StatusColumn
-          title="In Progress"
-          status="IN_PROGRESS"
-          tasks={inProgress}
-          onDrop={updateTaskStatus}
-          onDelete={handleDelete}
-          onEdit={handleEdit}
-        />
-        <StatusColumn
-          title="Done"
-          status="DONE"
-          tasks={done}
-          onDrop={updateTaskStatus}
-          onDelete={handleDelete}
-          onEdit={handleEdit}
-        />
+        {(['PENDING', 'IN_PROGRESS', 'DONE'] as Status[]).map((status) => (
+          <StatusColumn
+            key={status}
+            title={status.replace('_', ' ')}
+            status={status}
+            tasks={tasks.filter((task) => task.status === status)}
+            onDrop={updateTaskStatus}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+          />
+        ))}
       </Grid>
 
       <Modal open={open} onClose={handleClose}>

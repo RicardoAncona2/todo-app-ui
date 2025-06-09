@@ -12,11 +12,11 @@ const ItemType = {
 const DraggableTask = ({
   task,
   onDelete,
-  onEdit, // 🆕
+  onEdit,
 }: {
   task: Task;
   onDelete: (id: string) => void;
-  onEdit: (task: Task) => void; // 🆕
+  onEdit: (task: Task) => void;
 }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemType.TASK,

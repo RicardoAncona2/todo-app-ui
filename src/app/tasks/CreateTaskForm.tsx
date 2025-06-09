@@ -13,11 +13,12 @@ import {
 } from '@mui/material';
 import { CREATE_TASK_MUTATION, UPDATE_TASK_MUTATION } from '@/graphql';
 import { useState } from 'react';
+import { Status } from './TasksBoard';
 
 interface FormValues {
   title: string;
   description: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'DONE';
+  status: Status;
 }
 
 type Props = {
@@ -26,7 +27,7 @@ type Props = {
     id: string;
     title: string;
     description: string;
-    status: 'PENDING' | 'IN_PROGRESS' | 'DONE';
+    status:Status;
   };
 };
 

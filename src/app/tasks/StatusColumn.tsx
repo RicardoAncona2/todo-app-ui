@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles';
 import { useDrop } from 'react-dnd';
 
 import DraggableTask from './DraggableTask';
-import { Task } from './TasksBoard';
+import { Status, Task } from './TasksBoard';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
@@ -21,14 +21,14 @@ const StatusColumn = ({
   tasks,
   onDrop,
   onDelete,
-  onEdit, // 🆕 Added
+  onEdit,
 }: {
   title: string;
-  status: string;
+  status: Status;
   tasks: Task[];
-  onDrop: (task: Task, newStatus: string) => void;
+  onDrop: (task: Task, newStatus: Status) => void;
   onDelete: (id: string) => void;
-  onEdit: (task: Task) => void; // 🆕 Added
+  onEdit: (task: Task) => void;
 }) => {
   const [, drop] = useDrop(() => ({
     accept: ItemType.TASK,
@@ -36,7 +36,7 @@ const StatusColumn = ({
   }));
 
   return (
-    <Grid size={{ md: 12, xs: 4 }}>
+    <Grid size={{ xs: 12, md: 4 }}>
       {drop(
         <div>
           <StyledPaper elevation={3}>
