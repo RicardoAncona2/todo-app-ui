@@ -8,7 +8,6 @@ RUN npm install
 
 COPY . .
 
-# Build the Next.js app
 RUN npm run build
 
 # -------- Run Stage --------
@@ -16,15 +15,14 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Copy only necessary files from build stage
+ENV NODE_ENV=production
+ENV PORT=8080
+
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-# Set environment variable for production
-ENV NODE_ENV=production
-
-EXPOSE 3000
+EXPOSE 8080
 
 CMD ["npm", "start"]
