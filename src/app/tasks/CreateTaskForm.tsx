@@ -11,7 +11,7 @@ import {
   Box,
   Alert,
 } from '@mui/material';
-import { CREATE_TASK_MUTATION } from '@/graphql';
+import { CREATE_TASK_MUTATION, UPDATE_TASK_MUTATION } from '@/graphql';
 import { useState } from 'react';
 
 interface FormValues {
@@ -22,9 +22,15 @@ interface FormValues {
 
 type Props = {
   onSuccess?: () => void;
+  initialData?: {
+    id: string;
+    title: string;
+    description: string;
+    status: 'PENDING' | 'IN_PROGRESS' | 'DONE';
+  };
 };
 
-export default function CreateTaskForm({ onSuccess }: Props) {
+export default function CreateTaskForm({ onSuccess, initialData }: Props) {
   const {
     handleSubmit,
     control,
@@ -32,26 +38,28 @@ export default function CreateTaskForm({ onSuccess }: Props) {
     formState: { isSubmitting },
   } = useForm<FormValues>({
     defaultValues: {
-      title: '',
-      description: '',
-      status: 'PENDING',
+      title: initialData?.title || '',
+      description: initialData?.description || '',
+      status: initialData?.status || 'PENDING',
     },
   });
 
   const [createTask] = useMutation(CREATE_TASK_MUTATION);
+  const [updateTask] = useMutation(UPDATE_TASK_MUTATION);
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (data: FormValues) => {
     setError(null);
     try {
-      await createTask({
-        variables: {
-          input: {
-            title: data.title,
-            description: data.description,
-            status: data.status,
-          },
-        }, refetchQueries: ['ReadMyTasks'], awaitRefetchQueries: true,
+      const mutationFn = initialData?.id ? updateTask : createTask;
+      const variables = initialData?.id
+        ? { id: initialData.id, input: data }
+        : { input: data };
+
+      await mutationFn({
+        variables,
+        refetchQueries: ['ReadMyTasks'],
+        awaitRefetchQueries: true,
       });
 
       reset();
@@ -64,7 +72,7 @@ export default function CreateTaskForm({ onSuccess }: Props) {
   return (
     <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
       <Typography variant="h6" gutterBottom>
-        Create Task
+        {initialData ? 'Edit Task' : 'Create Task'}
       </Typography>
 
       {error && (
@@ -108,13 +116,7 @@ export default function CreateTaskForm({ onSuccess }: Props) {
         name="status"
         control={control}
         render={({ field }) => (
-          <TextField
-            {...field}
-            select
-            label="Status"
-            fullWidth
-            margin="normal"
-          >
+          <TextField {...field} select label="Status" fullWidth margin="normal">
             <MenuItem value="PENDING">Pending</MenuItem>
             <MenuItem value="IN_PROGRESS">In Progress</MenuItem>
             <MenuItem value="DONE">Done</MenuItem>
@@ -129,7 +131,9 @@ export default function CreateTaskForm({ onSuccess }: Props) {
           color="primary"
           disabled={isSubmitting}
         >
-          {isSubmitting ? <CircularProgress size={24} /> : 'Create Task'}
+          {isSubmitting ? (
+            <CircularProgress size={24} />
+          ) : initialData ? 'Update Task' : 'Create Task'}
         </Button>
       </Box>
     </Box>

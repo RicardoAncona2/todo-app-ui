@@ -2,7 +2,13 @@
 
 import { useState, Suspense } from 'react';
 import { useQuery, useMutation, gql } from '@apollo/client';
-import { Box, Button, Typography, Grid, Modal } from '@mui/material';
+import {
+  Box,
+  Button,
+  Typography,
+  Grid,
+  Modal,
+} from '@mui/material';
 
 import { READ_TASKS, UPDATE_TASK_MUTATION, DELETE_TASK } from '@/graphql';
 import StatusColumn from './StatusColumn';
@@ -18,6 +24,7 @@ export type Task = {
 
 export default function TasksBoard() {
   const [open, setOpen] = useState(false);
+  const [editTask, setEditTask] = useState<Task | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
@@ -27,22 +34,37 @@ export default function TasksBoard() {
 
   const tasks = data?.myTasks ?? [];
 
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleOpen = () => {
+    setEditTask(null); // create mode
+    setOpen(true);
+  };
+
+  const handleEdit = (task: Task) => {
+    setEditTask(task);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setEditTask(null);
+  };
 
   const updateTaskStatus = async (task: Task, newStatus: string) => {
+    const currentTask = tasks.find((t) => t.id === task.id);
+    if (!currentTask) return;
+
     try {
       await updateTask({
         variables: {
-          id: task.id,
+          id: currentTask.id,
           input: {
-            title: task.title,
-            description: task.description,
+            title: currentTask.title,
+            description: currentTask.description,
             status: newStatus,
           },
         },
         optimisticResponse: {
-          updateTask: { ...task, status: newStatus },
+          updateTask: { ...currentTask, status: newStatus },
         },
         update(cache, { data }) {
           if (!data?.updateTask) return;
@@ -55,13 +77,13 @@ export default function TasksBoard() {
                     return cache.writeFragment({
                       data: data.updateTask,
                       fragment: gql`
-                        fragment UpdatedTask on Task {
-                          id
-                          title
-                          description
-                          status
-                        }
-                      `,
+                      fragment UpdatedTask on Task {
+                        id
+                        title
+                        description
+                        status
+                      }
+                    `,
                     });
                   }
                   return taskRef;
@@ -75,6 +97,7 @@ export default function TasksBoard() {
       console.error('Failed to update task status', error);
     }
   };
+
 
   const handleDelete = (id: string) => {
     setTaskToDelete(id);
@@ -123,9 +146,30 @@ export default function TasksBoard() {
       </Box>
 
       <Grid container spacing={3}>
-        <StatusColumn title="Pending" status="PENDING" tasks={pending} onDrop={updateTaskStatus} onDelete={handleDelete} />
-        <StatusColumn title="In Progress" status="IN_PROGRESS" tasks={inProgress} onDrop={updateTaskStatus} onDelete={handleDelete} />
-        <StatusColumn title="Done" status="DONE" tasks={done} onDrop={updateTaskStatus} onDelete={handleDelete} />
+        <StatusColumn
+          title="Pending"
+          status="PENDING"
+          tasks={pending}
+          onDrop={updateTaskStatus}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+        />
+        <StatusColumn
+          title="In Progress"
+          status="IN_PROGRESS"
+          tasks={inProgress}
+          onDrop={updateTaskStatus}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+        />
+        <StatusColumn
+          title="Done"
+          status="DONE"
+          tasks={done}
+          onDrop={updateTaskStatus}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+        />
       </Grid>
 
       <Modal open={open} onClose={handleClose}>
@@ -143,7 +187,10 @@ export default function TasksBoard() {
           }}
         >
           <Suspense fallback={<Typography align="center">Loading form...</Typography>}>
-            <CreateTaskForm onSuccess={handleClose} />
+            <CreateTaskForm
+              initialData={editTask || undefined}
+              onSuccess={handleClose}
+            />
           </Suspense>
         </Box>
       </Modal>
